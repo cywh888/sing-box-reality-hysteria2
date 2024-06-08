@@ -355,7 +355,7 @@ show_client_configuration() {
   echo ""
   info  "上述链接为wss 端口 443 可改为 2053 2083 2087 2096 8443"
   echo ""
-  info "vmess ws链接，替换icook.hk为自己的优选ip可获得极致体验"
+  info "vmess ws链接，替换www.wto.org为自己的优选ip可获得极致体验"
   echo ""
   echo "$vmessws_link"
   echo ""
@@ -427,7 +427,7 @@ proxies:
       - h3
   - name: Vmess
     type: vmess
-    server: icook.hk
+    server: www.wto.org
     port: 443
     uuid: $vmess_uuid
     alterId: 0
@@ -643,7 +643,7 @@ cat << EOF
             }
         },
         {
-            "server": "icook.hk",
+            "server": "www.wto.org",
             "server_port": 443,
             "tag": "sing-box-vmess",
             "tls": {
