@@ -338,8 +338,8 @@ show_client_configuration() {
   vmess_uuid=$(jq -r '.inbounds[] | select(.tag == "vmess-in") | .users[0].uuid' /root/sbox/sbconfig_server.json)
   ws_path=$(jq -r '.inbounds[] | select(.tag == "vmess-in") | .transport.path' /root/sbox/sbconfig_server.json)
   
-  vmesswss_link='vmess://'$(echo '{"add":"icook.hk","aid":"0","host":"'$argo_domain'","id":"'$vmess_uuid'","net":"ws","path":"'${ws_path}?ed=2048'","port":"443","ps":"sing-box-vmess-tls","tls":"tls","type":"none","v":"2"}' | base64 -w 0)
-  vmessws_link='vmess://'$(echo '{"add":"icook.hk","aid":"0","host":"'$argo_domain'","id":"'$vmess_uuid'","net":"ws","path":"'${ws_path}?ed=2048'","port":"80","ps":"sing-box-vmess","tls":"","type":"none","v":"2"}' | base64 -w 0)
+  vmesswss_link='vmess://'$(echo '{"add":"www.wto.org","aid":"0","host":"'$argo_domain'","id":"'$vmess_uuid'","net":"ws","path":"'${ws_path}?ed=2048'","port":"443","ps":"sing-box-vmess-tls","tls":"tls","type":"none","v":"2"}' | base64 -w 0)
+  vmessws_link='vmess://'$(echo '{"add":"www.wto.org","aid":"0","host":"'$argo_domain'","id":"'$vmess_uuid'","net":"ws","path":"'${ws_path}?ed=2048'","port":"80","ps":"sing-box-vmess","tls":"","type":"none","v":"2"}' | base64 -w 0)
   echo ""
   echo ""
   show_notice "vmess ws(s) 通用链接和二维码"
