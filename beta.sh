@@ -113,7 +113,7 @@ install_pkgs() {
 install_shortcut() {
   cat > /root/sbox/mianyang.sh << EOF
 #!/usr/bin/env bash
-bash <(curl -fsSL https://github.com/vveg26/sing-box-reality-hysteria2/raw/main/beta.sh) \$1
+bash <(curl -fsSL https://github.com/cywh888/sing-box-reality-hysteria2/raw/main/beta.sh) \$1
 EOF
   chmod +x /root/sbox/mianyang.sh
   ln -sf /root/sbox/mianyang.sh /usr/bin/mianyang
@@ -345,7 +345,7 @@ show_client_configuration() {
   show_notice "vmess ws(s) 通用链接和二维码"
   echo ""
   echo ""
-  info "vmess wss通用链接,替换icook.hk为自己的优选ip可获得极致体验"
+  info "vmess wss通用链接,替换www.wto.org为自己的优选ip可获得极致体验"
   echo ""
   echo "$vmesswss_link"
   echo ""
