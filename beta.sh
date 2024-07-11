@@ -476,95 +476,64 @@ show_notice "sing-box1.8.0及以上客户端配置参数"
 cat << EOF
 {
   "log": {
-    "level": "debug",
-    "timestamp": true
-  },
-  "experimental": {
-    "clash_api": {
-      "external_controller": "127.0.0.1:9090",
-      "external_ui_download_url": "",
-      "external_ui_download_detour": "",
-      "external_ui": "ui",
-      "secret": "",
-      "default_mode": "rule"
-    },
-    "cache_file": {
-      "enabled": true,
-      "store_fakeip": false
-    }
-  },
-  "dns": {
-    "servers": [
-      {
-        "tag": "proxyDns",
-        "address": "https://8.8.8.8/dns-query",
-        "detour": "proxy"
-      },
-      {
-        "tag": "localDns",
-        "address": "https://223.5.5.5/dns-query",
-        "detour": "direct"
-      },
-      {
-        "tag": "block",
-        "address": "rcode://success"
-      },
-      {
-        "tag": "remote",
-        "address": "fakeip"
-      }
+     "disabled": false,
+     "level": "debug",
+     "timestamp": true
+     },
+     "dns": {
+        "servers": [
+           {
+             "tag": "default-dns",
+             "address": "223.5.5.5",
+             "detour": "direct-out"
+            },
+            {
+              "tag": "system-dns",
+              "address": "local",
+              "detour": "direct-out"
+            },
+            {
+              "tag": "block-dns",
+              "address": "rcode://name_error"
+            },
+            {
+              "tag": "google",
+              "address": "https://dns.google/dns-query",
+              "address_resolver": "default-dns",
+              "address_strategy": "ipv4_only",
+              "strategy": "ipv4_only",
+              "client_subnet": "1.0.1.0"
+            }
+      ],
+      "rules": [
+         {
+           "outbound": [
+               "any"
+           ],
+           "server": "default-dns"
+         },
+         {
+           "clash_mode": "direct",
+           "server": "default-dns"
+         },
+         {
+           "clash_mode": "global",
+           "server": "google"
+         },
+         {
+           "rule_set": [
+              "cnsite"
+              ],
+              "server": "default-dns"
+         }
     ],
-    "rules": [
-      {
-        "domain": [
-          "ghproxy.com",
-          "cdn.jsdelivr.net",
-          "testingcf.jsdelivr.net"
-        ],
-        "server": "localDns"
-      },
-      {
-        "rule_set": "geosite-category-ads-all",
-        "server": "block"
-      },
-      {
-        "outbound": "any",
-        "server": "localDns",
-        "disable_cache": true
-      },
-      {
-        "rule_set": "geosite-cn",
-        "server": "localDns"
-      },
-      {
-        "clash_mode": "direct",
-        "server": "localDns"
-      },
-      {
-        "clash_mode": "global",
-        "server": "proxyDns"
-      },
-      {
-        "rule_set": "geosite-geolocation-!cn",
-        "server": "proxyDns"
-      },
-      {
-        "query_type": [
-          "A",
-          "AAAA"
-        ],
-        "server": "remote"
-      }
-    ],
-    "fakeip": {
-      "enabled": true,
-      "inet4_range": "198.18.0.0/15",
-      "inet6_range": "fc00::/18"
+       "strategy": "ipv4_only",
+       "disable_cache": false,
+       "disable_expire": false,
+       "independent_cache": false,
+       "final": "google"
     },
-    "independent_cache": true,
-    "strategy": "ipv4_only"
-  },
-  "inbounds": [
+ "inbounds": [
     {
       "type": "tun",
       "inet4_address": "172.19.0.1/30",
@@ -589,18 +558,20 @@ cat << EOF
       "sniff": true,
       "users": []
     }
-  ],
-  "outbounds": [
+ ],
+ "outbounds": [
     {
-      "tag": "proxy",
-      "type": "selector",
-      "outbounds": [
-        "auto",
-        "direct",
-        "sing-box-reality",
-        "sing-box-hysteria2",
-        "sing-box-vmess"
-      ]
+      "type": "direct",
+      "tag": "direct-out",
+      "routing_mark": 100
+    },
+    {
+      "type": "block",
+      "tag": "block-out"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
     },
     {
       "type": "vless",
@@ -670,177 +641,100 @@ cat << EOF
             "type": "vmess",
             "security": "auto",
             "uuid": "$vmess_uuid"
-        },
-    {
-      "tag": "direct",
-      "type": "direct"
-    },
-    {
-      "tag": "block",
-      "type": "block"
-    },
-    {
-      "tag": "dns-out",
-      "type": "dns"
-    },
-    {
-      "tag": "auto",
-      "type": "urltest",
-      "outbounds": [
-        "sing-box-reality",
-        "sing-box-hysteria2",
-        "sing-box-vmess"
-      ],
-      "url": "http://www.gstatic.com/generate_204",
-      "interval": "1m",
-      "tolerance": 50
-    },
-    {
-      "tag": "WeChat",
-      "type": "selector",
-      "outbounds": [
-        "direct",
-        "sing-box-reality",
-        "sing-box-hysteria2",
-        "sing-box-vmess"
-      ]
-    },
-    {
-      "tag": "Apple",
-      "type": "selector",
-      "outbounds": [
-        "direct",
-        "sing-box-reality",
-        "sing-box-hysteria2",
-        "sing-box-vmess"
-      ]
-    },
-    {
-      "tag": "Microsoft",
-      "type": "selector",
-      "outbounds": [
-        "direct",
-        "sing-box-reality",
-        "sing-box-hysteria2",
-        "sing-box-vmess"
-      ]
-    }
-  ],
-  "route": {
-    "auto_detect_interface": true,
-    "final": "proxy",
-    "rules": [
-      {
-        "protocol": "dns",
-        "outbound": "dns-out"
-      },
-      {
-        "network": "udp",
-        "port": 443,
-        "outbound": "block"
-      },
-      {
-        "rule_set": "geosite-category-ads-all",
-        "outbound": "block"
-      },
-      {
-        "clash_mode": "direct",
-        "outbound": "direct"
-      },
-      {
-        "clash_mode": "global",
-        "outbound": "proxy"
-      },
-      {
-        "domain": [
-          "clash.razord.top",
-          "yacd.metacubex.one",
-          "yacd.haishan.me",
-          "d.metacubex.one"
+  },
+  {
+     "type": "selector",
+     "tag": "手动选择",
+     "outbounds": [
+              "direct-out",
+              "block-out",
+              "sing-box-reality",
+              "sing-box-hysteria2",
+              "sing-box-vmess",
+              "自动选择"
         ],
-        "outbound": "direct"
-      },      
+        "default": "自动选择"
+  },
+  {
+     "type": "urltest",
+     "tag": "自动选择",
+     "outbounds": [
+              "sing-box-reality",
+              "sing-box-hysteria2",
+              "sing-box-vmess"
+        ],
+        "url": "http://www.gstatic.com/generate_204"
+  },
+  {
+     "type": "selector",
+     "tag": "GLOBAL",
+     "outbounds": [
+              "direct-out",
+              "sing-box-reality",
+              "sing-box-hysteria2",
+              "sing-box-vmess",
+              "自动选择",
+              "手动选择"
+         ],
+         "default": "手动选择"
+    }
+ ],
+ "route": {
+     "rules": [
+          {
+             "protocol": "dns",
+             "outbound": "dns-out"
+          },                
+          {
+             "network": "udp",
+             "port": 443,
+             "outbound": "block-out"
+          },
+          {
+             "clash_mode": "direct",
+             "outbound": "direct-out"
+          },
+          {
+             "clash_mode": "global",
+             "outbound": "GLOBAL"
+          },
+          {
+             "rule_set": [
+                 "cnip",
+                 "cnsite"
+             ],
+             "outbound": "direct-out"
+          }
+  ],
+  "rule_set": [
       {
-        "rule_set": "geosite-wechat",
-        "outbound": "WeChat"
+         "type": "remote",
+         "tag": "cnip",
+         "format": "binary",
+         "url": "https://github.com/MetaCubeX/meta-rules-dat/raw/sing/geo-lite/geoip/cn.srs",
+         "download_detour": "自动选择"
       },
       {
-        "rule_set": "geosite-geolocation-!cn",
-        "outbound": "proxy"
-      },
-      {
-        "ip_is_private": true,
-        "outbound": "direct"
-      },
-      {
-        "rule_set": "geoip-cn",
-        "outbound": "direct"
-      },
-      {
-        "rule_set": "geosite-cn",
-        "outbound": "direct"
-      },
-      {
-        "rule_set": "geosite-apple",
-        "outbound": "Apple"
-      },
-      {
-        "rule_set": "geosite-microsoft",
-        "outbound": "Microsoft"
+         "type": "remote",
+         "tag": "cnsite",
+         "format": "binary",
+         "url": "https://github.com/MetaCubeX/meta-rules-dat/raw/sing/geo-lite/geosite/cn.srs",
+         "download_detour": "自动选择"
       }
-    ],
-    "rule_set": [
-      {
-        "tag": "geoip-cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs",
-        "download_detour": "direct"
+  ],
+  "auto_detect_interface": true,
+      "final": "手动选择"
+  },
+  "experimental": {
+      "cache_file": {
+           "enabled": true
       },
-      {
-        "tag": "geosite-cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/cn.srs",
-        "download_detour": "direct"
-      },
-      {
-        "tag": "geosite-geolocation-!cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/geolocation-!cn.srs",
-        "download_detour": "direct"
-      },
-      {
-        "tag": "geosite-category-ads-all",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ads-all.srs",
-        "download_detour": "direct"
-      },
-      {
-        "tag": "geosite-wechat",
-        "type": "remote",
-        "format": "source",
-        "url": "https://testingcf.jsdelivr.net/gh/Toperlock/sing-box-geosite@main/wechat.json",
-        "download_detour": "direct"
-      },
-      {
-        "tag": "geosite-apple",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/apple.srs",
-        "download_detour": "direct"
-      },
-      {
-        "tag": "geosite-microsoft",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/microsoft.srs",
-        "download_detour": "direct"
+      "clash_api": {
+           "external_controller": "127.0.0.1:9090",
+           "external_ui_download_detour": "自动选择",
+           "default_mode": "rule"
       }
-    ]
-  }
+   }
 }
 EOF
 
