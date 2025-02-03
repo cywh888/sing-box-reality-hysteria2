@@ -521,9 +521,14 @@ cat << EOF
            "server": "google"
          },
          {
+           "rule_set": "cnsite-!cn",
+           "server": "google"
+         },
+         {
            "rule_set": [
               "cnsite"
               ],
+              "action": "route",
               "server": "default-dns"
          }
     ],
@@ -540,7 +545,6 @@ cat << EOF
       "mtu": 9000,
       "auto_route": true,
       "strict_route": true,
-      "sniff": true,
       "endpoint_independent_nat": false,
       "stack": "system",
       "platform": {
@@ -562,16 +566,7 @@ cat << EOF
  "outbounds": [
     {
       "type": "direct",
-      "tag": "direct-out",
-      "routing_mark": 100
-    },
-    {
-      "type": "block",
-      "tag": "block-out"
-    },
-    {
-      "type": "dns",
-      "tag": "dns-out"
+      "tag": "direct-out"
     },
     {
       "type": "vless",
@@ -647,7 +642,6 @@ cat << EOF
      "tag": "手动选择",
      "outbounds": [
               "direct-out",
-              "block-out",
               "sing-box-reality",
               "sing-box-hysteria2",
               "sing-box-vmess",
@@ -680,15 +674,32 @@ cat << EOF
     }
  ],
  "route": {
-     "rules": [
+     "rules": [ 
           {
-             "protocol": "dns",
-             "outbound": "dns-out"
-          },                
+            "inbound": "tun-in",
+            "action": "sniff"
+          },  
+          {
+             "type": "logical",
+             "mode": "or",
+             "rules": [
+               {
+               "port": 53
+               },
+               { 
+               "protocol": "dns"
+                }
+             ],  
+             "action": "hijack-dns" 
+          },  
+          {
+             "rule_set": "geosite-category-ads-all",
+             "action": "reject"
+          },
           {
              "network": "udp",
              "port": 443,
-             "outbound": "block-out"
+             "action": "reject"
           },
           {
              "clash_mode": "direct",
@@ -699,6 +710,10 @@ cat << EOF
              "outbound": "GLOBAL"
           },
           {
+             "rule_set": "cnsite-!cn", 
+             "outbound": "手动切换"
+          },
+          {
              "rule_set": [
                  "cnip",
                  "cnsite"
@@ -707,6 +722,20 @@ cat << EOF
           }
   ],
   "rule_set": [
+      {
+        "tag": "cnsite-!cn", 
+        "type": "remote", 
+        "format": "binary", 
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/geolocation-!cn.srs", 
+        "download_detour": "自动选择"
+      }, 
+      {
+        "tag": "geosite-category-ads-all",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/category-ads-all.srs",
+        "download_detour": "自动选择"
+      },
       {
          "type": "remote",
          "tag": "cnip",
@@ -1612,8 +1641,6 @@ cat > /root/sbox/sbconfig_server.json << EOF
   },
   "inbounds": [
     {
-      "sniff": true,
-      "sniff_override_destination": true,
       "type": "vless",
       "tag": "vless-in",
       "listen": "::",
@@ -1639,8 +1666,6 @@ cat > /root/sbox/sbconfig_server.json << EOF
       }
     },
     {
-        "sniff": true,
-        "sniff_override_destination": true,
         "type": "hysteria2",
         "tag": "hy2-in",
         "listen": "::",
@@ -1660,8 +1685,6 @@ cat > /root/sbox/sbconfig_server.json << EOF
         }
     },
     {
-        "sniff": true,
-        "sniff_override_destination": true,
         "type": "vmess",
         "tag": "vmess-in",
         "listen": "::",
@@ -1684,12 +1707,17 @@ cat > /root/sbox/sbconfig_server.json << EOF
         {
             "type": "direct",
             "tag": "direct"
-        },
-        {
-            "type": "block",
-            "tag": "block"
         }
+    ],
+  "route": {
+    "final": "direct",
+    "rules": [
+      {
+        "action": "sniff"
+      }
     ]
+  }
+}
 }
 EOF
 # Create sing-box.service
