@@ -94,7 +94,7 @@ install_pkgs() {
 install_shortcut() {
   cat > /root/sbox/mianyang.sh << EOF
 #!/usr/bin/env bash
-bash <(curl -fsSL https://github.com/vveg26/sing-box-reality-hysteria2/raw/main/install.sh) \$1
+bash <(curl -fsSL https://github.com/cywh888/sing-box-reality-hysteria2/raw/main/install.sh) \$1
 EOF
   chmod +x /root/sbox/mianyang.sh
   ln -sf /root/sbox/mianyang.sh /usr/bin/mianyang
@@ -454,6 +454,7 @@ cat << EOF
       },
       {
         "rule_set": "geosite-cn",
+        "action": "route",
         "server": "localDns"
       },
       {
@@ -487,11 +488,11 @@ cat << EOF
   "inbounds": [
     {
       "type": "tun",
-      "inet4_address": "172.19.0.1/30",
+      "tag": "tun-in",
+      "address": "172.19.0.1/30",
       "mtu": 9000,
       "auto_route": true,
       "strict_route": true,
-      "sniff": true,
       "endpoint_independent_nat": false,
       "stack": "system",
       "platform": {
@@ -506,7 +507,6 @@ cat << EOF
       "type": "mixed",
       "listen": "127.0.0.1",
       "listen_port": 2080,
-      "sniff": true,
       "users": []
     }
   ],
@@ -517,13 +517,13 @@ cat << EOF
       "outbounds": [
         "auto",
         "direct",
-        "sing-box-reality",
-        "sing-box-hysteria2"
+        "reality节点",
+        "hysteria2节点"
       ]
     },
     {
       "type": "vless",
-      "tag": "sing-box-reality",
+      "tag": "reality节点",
       "uuid": "$reality_uuid",
       "flow": "xtls-rprx-vision",
       "packet_encoding": "xudp",
@@ -547,7 +547,7 @@ cat << EOF
             "type": "hysteria2",
             "server": "$server_ip",
             "server_port": $hy_port,
-            "tag": "sing-box-hysteria2",
+            "tag": "hysteria2节点",
             "up_mbps": 100,
             "down_mbps": 100,
             "password": "$hy_password",
@@ -561,25 +561,13 @@ cat << EOF
             }
         },
     {
-      "tag": "direct",
-      "type": "direct"
-    },
-    {
-      "tag": "block",
-      "type": "block"
-    },
-    {
-      "tag": "dns-out",
-      "type": "dns"
-    },
-    {
       "tag": "auto",
       "type": "urltest",
       "outbounds": [
-        "sing-box-reality",
-        "sing-box-hysteria2"
+        "reality节点",
+        "hysteria2节点"
       ],
-      "url": "http://www.gstatic.com/generate_204",
+      "url": "https://www.gstatic.com/generate_204",
       "interval": "1m",
       "tolerance": 50
     },
@@ -588,8 +576,8 @@ cat << EOF
       "type": "selector",
       "outbounds": [
         "direct",
-        "sing-box-reality",
-        "sing-box-hysteria2"
+        "reality节点",
+        "hysteria2节点"
       ]
     },
     {
@@ -597,8 +585,8 @@ cat << EOF
       "type": "selector",
       "outbounds": [
         "direct",
-        "sing-box-reality",
-        "sing-box-hysteria2"
+        "reality节点",
+        "hysteria2节点"
       ]
     },
     {
@@ -606,9 +594,13 @@ cat << EOF
       "type": "selector",
       "outbounds": [
         "direct",
-        "sing-box-reality",
-        "sing-box-hysteria2"
+        "reality节点",
+        "hysteria2节点"
       ]
+    },
+    {
+      "tag": "direct",
+      "type": "direct"
     }
   ],
   "route": {
@@ -616,17 +608,30 @@ cat << EOF
     "final": "proxy",
     "rules": [
       {
-        "protocol": "dns",
-        "outbound": "dns-out"
+        "inbound": "tun-in",
+        "action": "sniff"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+            {
+            "port": 53
+            },
+           { 
+           "protocol": "dns"
+           }
+        ],  
+        "action": "hijack-dns" 
       },
       {
         "network": "udp",
         "port": 443,
-        "outbound": "block"
+        "action": "reject"
       },
       {
         "rule_set": "geosite-category-ads-all",
-        "outbound": "block"
+        "action": "reject"
       },
       {
         "clash_mode": "direct",
@@ -725,6 +730,13 @@ cat << EOF
         "download_detour": "direct"
       }
     ]
+  },
+  "ntp": {
+    "enabled": true,
+    "server": "time.apple.com",
+    "server_port": 123,
+    "interval": "30m",
+    "detour": "direct"
   }
 }
 EOF
@@ -1790,8 +1802,6 @@ cat > /root/sbox/sbconfig_server.json << EOF
   },
   "inbounds": [
     {
-      "sniff": true,
-      "sniff_override_destination": true,
       "type": "vless",
       "tag": "vless-in",
       "listen": "::",
@@ -1817,8 +1827,6 @@ cat > /root/sbox/sbconfig_server.json << EOF
       }
     },
     {
-        "sniff": true,
-        "sniff_override_destination": true,
         "type": "hysteria2",
         "tag": "hy2-in",
         "listen": "::",
@@ -1838,16 +1846,19 @@ cat > /root/sbox/sbconfig_server.json << EOF
         }
     }
   ],
-    "outbounds": [
+ "outbounds": [
         {
             "type": "direct",
             "tag": "direct"
-        },
-        {
-            "type": "block",
-            "tag": "block"
         }
-    ]
+    ],
+  "route": {
+    "final": "direct",
+    "rules": [
+      {
+        "action": "sniff"
+      }
+   ]
 }
 EOF
 
