@@ -1240,6 +1240,9 @@ enable_warp(){
             "final": "direct",
             "rules": [
               {
+                 "action": "sniff"
+              },
+              {
                 "rule_set": ["geosite-openai","geosite-netflix"],
                 "outbound": $warp_out
               },
@@ -1439,9 +1442,7 @@ process_dokoko() {
         done
         jq --arg fport "$fport" --arg fip "$fip" '
             .inbounds += [
-                {   
-                    "sniff": true,
-                    "sniff_override_destination": true,
+                { 
                     "type": "direct",
                     "tag": "direct-in",
                     "listen": $fip,
