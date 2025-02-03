@@ -1858,7 +1858,8 @@ cat > /root/sbox/sbconfig_server.json << EOF
       {
         "action": "sniff"
       }
-   ]
+    ]
+  }
 }
 EOF
 
