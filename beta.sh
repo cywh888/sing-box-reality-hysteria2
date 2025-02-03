@@ -763,7 +763,14 @@ cat << EOF
            "external_ui_download_detour": "自动选择",
            "default_mode": "rule"
       }
-   }
+   },
+  "ntp": {
+    "enabled": true,
+    "server": "time.apple.com",
+    "server_port": 123,
+    "interval": "30m",
+    "detour": "direct"
+  }
 }
 EOF
 
