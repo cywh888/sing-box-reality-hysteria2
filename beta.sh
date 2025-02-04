@@ -1725,7 +1725,7 @@ cat > /root/sbox/sbconfig_server.json << EOF
     ]
   }
 }
-}
+
 EOF
 # Create sing-box.service
 cat > /etc/systemd/system/sing-box.service <<EOF
